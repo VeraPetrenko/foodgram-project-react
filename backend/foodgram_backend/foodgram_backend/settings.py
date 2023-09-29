@@ -117,6 +117,7 @@ STATIC_URL = '/static/'
 # STATIC_ROOT = BASE_DIR / 'static'
 
 MEDIA_URL = '/media/'
+# после настройки в контейнерах поменять на /media
 MEDIA_ROOT = 'recipes/images'
 
 # Default primary key field type

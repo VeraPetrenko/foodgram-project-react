@@ -44,7 +44,7 @@ class Recipe(CreatedModel):
         max_length=200
     )
     image = models.ImageField(
-        upload_to='recipes/images',
+        upload_to='',
         null=True,
         default=None
     )
