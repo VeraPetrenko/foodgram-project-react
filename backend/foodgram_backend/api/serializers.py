@@ -16,6 +16,20 @@ from recipes.models import (
 from users.models import User
 
 
+class UserGetSerializer(UserSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            # 'is_subscribed',
+        )
+
+
+
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -51,6 +65,7 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     ingredients = IngredientRecipeSerializer(many=True, source='ingredient_recipe')
+    author = UserGetSerializer(read_only=True)
 
     class Meta:
         model = Recipe
@@ -94,14 +109,17 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         many=True,
         source='ingredient_recipe'
     )
-    image = Base64ImageField(required=False, allow_null=True)
-    # author = serializers.
+    image = Base64ImageField(
+        required=False,
+        allow_null=True
+    )
+    author = UserGetSerializer(read_only=True)
     # tags = TagSerializer(many=True)
 
     class Meta:
         model = Recipe
         fields = (
-            # 'author',
+            'author',
             'name',
             'image',
             'text',
