@@ -1,5 +1,7 @@
+import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from djoser.serializers import UserSerializer
 
 from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
 
@@ -18,6 +20,13 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
+        fields = '__all__'
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Ingredient
         fields = '__all__'
 
 
@@ -51,7 +60,11 @@ class RecipeSerializer(serializers.ModelSerializer):
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient',
-        queryset=Ingredient.objects.all()
+        queryset=Ingredient.objects.all(),
+    )
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
     )
 
     # дописать
@@ -60,7 +73,7 @@ class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
-            'measurment_unit',
+            'measurement_unit',
             'amount',
         )
 
@@ -76,13 +89,14 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    ingredients = IngredientRecipeCreateSerializer(many=True)
-    image = serializers.SerializerMethodField(
-        'get_image',
-        read_only=True,
+    ingredients = IngredientRecipeCreateSerializer(
+        many=True,
+        source='ingredient_recipe'
     )
+    image = Base64ImageField(required=False, allow_null=True)
+    # author = serializers.
+    # tags = TagSerializer(many=True)
 
     class Meta:
         model = Recipe
@@ -96,14 +110,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    def get_image(self, obj):
-        img = Base64ImageField(required=False, allow_null=True)
-        if obj.img:
-            return obj.img.url
-        return None
-
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
+        ingredients = validated_data.pop('ingredient_recipe')
         instance = super().create(validated_data)
         # здесь нужно поменять на балк креэйт:
         for ingredient_data in ingredients:

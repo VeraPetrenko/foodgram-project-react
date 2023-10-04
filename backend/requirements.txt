@@ -7,3 +7,4 @@ psycopg2-binary==2.9.3
 django-rest-auth==0.9.5
 webcolors==1.13
 pillow==10.0.1
+django-filter==23.3
