@@ -57,7 +57,8 @@ class Recipe(CreatedModel):
         verbose_name='Ингредиенты рецепта'
     )
     tags = models.ManyToManyField(
-        Tag,
+        'Tag',
+        through='TagRecipe',
         verbose_name='Теги рецепта'
     )
     cooking_time = models.PositiveIntegerField(
@@ -95,21 +96,44 @@ class IngredientRecipe(models.Model):
     )
 
 
-# class Follow(CreatedModel):
-#     user = models.ForeignKey(
-#         User,
-#         on_delete=models.CASCADE,
-#         related_name='follower'
-#     )
-#     author = models.ForeignKey(
-#         User,
-#         on_delete=models.CASCADE,
-#         related_name='following'
-#     )
+class TagRecipe(models.Model):
+    """Модель связи тегов и рецептов."""
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='tag_recipe'
+    )
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,
+        related_name='tag_recipe'
+    )
 
-#     class Meta:
-#         unique_together = ('user', 'author')
 
+class Follow(CreatedModel):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Фолловер',
+        related_name='follower'
+    )
+    following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор постов',
+        related_name='following'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            )
+        ]
+
+    def __str__(self):
+        return f'Подписка на {self.following.username}'
 
 # class Favorites(CreatedModel):
 #     """Модель избранного."""

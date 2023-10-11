@@ -2,14 +2,30 @@ from django.shortcuts import HttpResponse
 from djoser.views import UserViewSet
 from django_filters import rest_framework as filters
 from rest_framework.viewsets import ModelViewSet
-from recipes.models import Recipe, Tag, Ingredient
-from api.serializers import TagSerializer, RecipeSerializer, RecipeCreateSerializer, IngredientSerializer
+from recipes.models import Recipe, Tag, Ingredient, Follow
+from api.serializers import TagSerializer, RecipeSerializer, RecipeCreateSerializer, IngredientSerializer, FollowSerializer, FollowCreateDeleteSerializer, UserSerializer
 from core import filters_custom
+from django.contrib.auth import get_user_model
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+
+
+User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-    pass
 
+    # @action(["post", "delete"], detail=False)
+    # def subscribe(self, request):
+    #     ...
+
+    @action(["get"], detail=False)
+    def me(self, request):
+        user = get_object_or_404(User, id=request.user.id)
+        serializer = UserSerializer(user)
+        # пермишн будет только авторизованный
+        return Response(serializer.data)
 
 class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
@@ -31,14 +47,7 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
-    # def dispatch(self, request, *args, **kwargs):
-    #     # добавить какой-нибудь принт, если что-то пойдет не так
-    #     # либо удалить
-    #     return super().dispatch(request, *args, **kwargs)
-
     def get_queryset(self):
-        # с помощью prefetch_related сократили кол-во запросов
-        # к БД при отображении списка рецептов
         recipes = Recipe.objects.prefetch_related(
             'ingredient_recipe__ingredient', 'tags'
         ).all()
@@ -51,3 +60,30 @@ class RecipeViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class FollowViewSet(ModelViewSet):
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+
+    # def get_queryset(self):
+    #     return self.request.user.follower.all()
+    
+    def get_queryset(self):
+        return Follow.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            user=self.request.user
+        )
+    
+    # протестить
+
+    def perform_destroy(self, instance):
+        subscription = instance
+        subscription.delete()
+
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'destroy':
+            return FollowCreateDeleteSerializer
+        return FollowSerializer

@@ -71,11 +71,12 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'fdgram'),
+        'NAME': os.getenv('POSTGRES_DB', 'foodgrm'),
         'USER': os.getenv('POSTGRES_USER', 'foodgram_user'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'foodgram_password'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', 5432)
+        # 'HOST': os.getenv('DB_HOST', 'db'),
+        'PORT': os.getenv('DB_PORT', 5432),
     }
 }
 
@@ -146,10 +147,17 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    # 'SERIALIZERS': {
-    #     'user': 'api.serializers.UserSerializer',
-    #     'current_user': 'api.serializers.UserSerializer',
-    # },
+    'SERIALIZERS': {
+        # 'user': 'api.serializers.UserCreateSerializer',
+        'user': 'api.serializers.UserSerializer',
+        'current_user': 'api.serializers.UserSerializer',
+    },
+    'HIDE_USERS': False,
+    # анонимы не видят страниц пользователей с этой настройкой
+    # 'PERMISSIONS': {
+    #     'user': ['rest_framework.permissions.AllowAny'],
+        # 'user_list': ['rest_framework.permissions.CurrentUserOrAdmin'],
+    # }
     # 'PERMISSIONS': {
     #     'user': ['rest_framework.permissions.AllowAny'],
     #     'user_list': ['rest_framework.permissions.AllowAny'],
