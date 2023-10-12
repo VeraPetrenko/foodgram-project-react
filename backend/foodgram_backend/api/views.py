@@ -8,6 +8,7 @@ from core import filters_custom
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 
@@ -66,9 +67,6 @@ class FollowViewSet(ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
 
-    # def get_queryset(self):
-    #     return self.request.user.follower.all()
-    
     def get_queryset(self):
         return Follow.objects.filter(user=self.request.user)
 
@@ -76,14 +74,28 @@ class FollowViewSet(ModelViewSet):
         serializer.save(
             user=self.request.user
         )
-    
-    # протестить
 
-    def perform_destroy(self, instance):
-        subscription = instance
-        subscription.delete()
+    def delete(self, request, *args, **kwargs):
+        following = get_object_or_404(
+            User,
+            pk=kwargs['following_id']
+        )
+        instance = get_object_or_404(
+            Follow,
+            user=request.user,
+            following=following)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'destroy':
             return FollowCreateDeleteSerializer
         return FollowSerializer
+
+
+class FollowListViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = FollowSerializer
+
+    def get_queryset(self):
+        return Follow.objects.filter(user=self.request.user)

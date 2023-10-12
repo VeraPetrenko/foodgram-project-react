@@ -10,6 +10,7 @@ from api.views import (
     IngredientViewSet,
     TagViewSet,
     FollowViewSet,
+    FollowListViewSet,
 )
 
 router = DefaultRouter()
@@ -21,7 +22,7 @@ router_sub.register(
 )
 router_sub.register(
     r'users/subscriptions',
-    FollowViewSet,
+    FollowListViewSet,
     basename='subscriptions'
 )
 router.register(
