@@ -11,19 +11,25 @@ from api.views import (
     TagViewSet,
     FollowViewSet,
     FollowListViewSet,
+    FavoriteViewSet,
 )
 
 router = DefaultRouter()
-router_sub = DefaultRouter()
-router_sub.register(
+router_sub_fav = DefaultRouter()
+router_sub_fav.register(
     r'users/(?P<following_id>\d+)/subscribe',
     FollowViewSet,
     basename='subscribe'
 )
-router_sub.register(
+router_sub_fav.register(
     r'users/subscriptions',
     FollowListViewSet,
     basename='subscriptions'
+)
+router_sub_fav.register(
+    r'recipes/(?P<recipe_id>\d+)/favorite',
+    FavoriteViewSet,
+    basename='subscribe'
 )
 router.register(
     'users',
@@ -44,6 +50,6 @@ router.register(
 
 urlpatterns = [
     path('auth/', include('djoser.urls.authtoken')),
-    path('', include(router_sub.urls)),
+    path('', include(router_sub_fav.urls)),
     path('', include(router.urls))
 ]

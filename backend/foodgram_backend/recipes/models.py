@@ -135,18 +135,19 @@ class Follow(CreatedModel):
     def __str__(self):
         return f'Подписка на {self.following.username}'
 
-# class Favorites(CreatedModel):
-#     """Модель избранного."""
-#     recipe = models.ForeignKey(
-#         Recipe,
-#         on_delete=models.CASCADE,
-#         related_name='favorite_recipe',
-#     )
-#     user = models.ForeignKey(
-#         User,
-#         on_delete=models.CASCADE,
-#         related_name='follower_recipe',
-#     )
 
-#     class Meta:
-#         unique_together = ('user', 'recipe')
+class Favorite(CreatedModel):
+    """Модель избранного."""
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorite_recipe',
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorite_recipe',
+    )
+
+    class Meta:
+        unique_together = ('user', 'recipe')

@@ -148,19 +148,13 @@ REST_FRAMEWORK = {
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
-        # 'user': 'api.serializers.UserCreateSerializer',
         'user': 'api.serializers.UserSerializer',
         'current_user': 'api.serializers.UserSerializer',
     },
     'HIDE_USERS': False,
-    # анонимы не видят страниц пользователей с этой настройкой
-    # 'PERMISSIONS': {
-    #     'user': ['rest_framework.permissions.AllowAny'],
-        # 'user_list': ['rest_framework.permissions.CurrentUserOrAdmin'],
-    # }
-    # 'PERMISSIONS': {
-    #     'user': ['rest_framework.permissions.AllowAny'],
-    #     'user_list': ['rest_framework.permissions.AllowAny'],
-    #     'token_create': ['rest_framework.permissions.AllowAny'],
-    # },
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.AllowAny'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'token_create': ['rest_framework.permissions.AllowAny'],
+    },
 }

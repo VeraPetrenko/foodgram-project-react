@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe, Follow
+from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe, Follow, Favorite
 
 
 class IngredientRecipeInLine(admin.TabularInline):
@@ -13,6 +13,11 @@ class TagRecipeInLine(admin.TabularInline):
     model = TagRecipe
     # 1 доп кнопка для создания:
     extra = 2
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Follow)

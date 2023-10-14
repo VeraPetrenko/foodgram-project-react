@@ -2,12 +2,12 @@ import base64
 from django.core.files.base import ContentFile
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework import serializers
-from djoser.serializers import UserSerializer
+import djoser.serializers
 from django.shortcuts import get_object_or_404
 
 from recipes.models import (
     Ingredient,
-    # Favorites,
+    Favorite,
     Follow,
     Recipe,
     IngredientRecipe,
@@ -17,7 +17,7 @@ from recipes.models import (
 from users.models import User
 
 
-class UserSerializer(UserSerializer):
+class UserSerializer(djoser.serializers.UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -33,12 +33,26 @@ class UserSerializer(UserSerializer):
 
     def get_is_subscribed(self, instance):
         request = self.context.get('request')
-        if Follow.objects.filter(
+        if not request:
+            return False
+        return Follow.objects.filter(
             user=request.user,
             following=instance
-        ).exists():
-            return True
-        return False
+            ).exists()
+
+
+class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
+    #добавить валидацию
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'password',
+        )
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -105,9 +119,8 @@ class TagRecipeSerializer(serializers.ModelSerializer):
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
-    # можно в name measurement_unit использовать ReadOnlyField
-    name = serializers.CharField(source='ingredient.name')
-    measurement_unit = serializers.CharField(
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
 
@@ -125,11 +138,35 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagRecipeSerializer(many=True, source='tag_recipe')
     ingredients = IngredientRecipeSerializer(many=True, source='ingredient_recipe')
     author = UserSerializer(read_only=True)
-    
+    is_favorited = serializers.SerializerMethodField()
+    # is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            # 'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
+
+    def get_is_favorited(self, instance):
+        return Favorite.objects.filter(
+            user=self.context['request'].user,
+            recipe=instance
+        ).exists()
+
+    # def get_is_in_shopping_cart(self, instance):
+    #     return ShoppingCart.objects.filter(
+    #         user=self.context['request'].user,
+    #         recipe=instance
+    #     ).exists()
 
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
@@ -301,3 +338,23 @@ class FollowSerializer(serializers.ModelSerializer):
             many=True,
             context=self.context
         ).data
+
+
+class FavoriteCreateDeleteSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='favorite.user')
+    recipe = serializers.ReadOnlyField(source='favorite.recipe')
+
+    class Meta:
+        model = Favorite
+        fields = ('user', 'recipe',)
+
+    def create(self, validated_data):
+        user = validated_data['user']
+        recipe = get_object_or_404(
+            Recipe,
+            pk=self.context['view'].kwargs['recipe_id']
+        )
+        fav_rec = Favorite(user=user, recipe=recipe)
+        fav_rec.save()
+        return fav_rec
+

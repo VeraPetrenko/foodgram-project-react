@@ -5,10 +5,6 @@ from rest_framework.exceptions import ValidationError
 
 
 def validate_username(value):
-    if value == 'me':
-        raise serializers.ValidationError(
-            'Невозможно использовать me в качестве username'
-        )
     pattern_username = r'^[\w.@+-]+\Z'
     if not re.match(pattern_username, value):
         raise ValidationError(

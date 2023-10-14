@@ -2,8 +2,18 @@ from django.shortcuts import HttpResponse
 from djoser.views import UserViewSet
 from django_filters import rest_framework as filters
 from rest_framework.viewsets import ModelViewSet
-from recipes.models import Recipe, Tag, Ingredient, Follow
-from api.serializers import TagSerializer, RecipeSerializer, RecipeCreateSerializer, IngredientSerializer, FollowSerializer, FollowCreateDeleteSerializer, UserSerializer
+from recipes.models import Recipe, Tag, Ingredient, Follow, Favorite
+from api.serializers import (
+    TagSerializer,
+    RecipeSerializer,
+    RecipeCreateSerializer,
+    IngredientSerializer,
+    FollowSerializer,
+    FollowCreateDeleteSerializer,
+    UserSerializer,
+    UserCreateSerializer,
+    FavoriteCreateDeleteSerializer,
+)
 from core import filters_custom
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
@@ -17,16 +27,18 @@ User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
 
-    # @action(["post", "delete"], detail=False)
-    # def subscribe(self, request):
-    #     ...
-
     @action(["get"], detail=False)
     def me(self, request):
         user = get_object_or_404(User, id=request.user.id)
         serializer = UserSerializer(user)
         # пермишн будет только авторизованный
         return Response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return UserCreateSerializer
+        return UserSerializer
+
 
 class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
@@ -99,3 +111,28 @@ class FollowListViewSet(ModelViewSet):
 
     def get_queryset(self):
         return Follow.objects.filter(user=self.request.user)
+
+
+class FavoriteViewSet(ModelViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteCreateDeleteSerializer
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            user=self.request.user
+        )
+
+    def delete(self, request, *args, **kwargs):
+        fav_recipe = get_object_or_404(
+            Recipe,
+            pk=kwargs['recipe_id']
+        )
+        instance = get_object_or_404(
+            Favorite,
+            user=request.user,
+            recipe=fav_recipe)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
