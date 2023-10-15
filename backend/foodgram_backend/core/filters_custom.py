@@ -15,19 +15,33 @@ class FilterIngredient(FilterSet):
         fields = ('name',)
 
 
-# class FilterRecipe(FilterSet):
-#     """Фильтр для рецептов."""
-#     # is_favorited is_in_shopping_cart= filters.BooleanFilter(
-#     #     field_name='',
-#     # )
+class FilterRecipe(FilterSet):
+    """Фильтр для рецептов."""
+    is_favorited = filters.BooleanFilter(
+        field_name='is_favorited',
+        method='get_is_favorited',
+    )
+    # is_in_shopping_cart = filters.BooleanFilter(
+    #     field_name='is_in_shopping_cart',
+    #     method='get_is_in_shopping_cart',
+    # )
 #     # tags = filters.MultipleChoiceField()
-#     # author = 
 
-#     class Meta:
-#         model = Recipe
-#         fields = (
-#             'author',
-#             'is_favorited',
-#             'is_in_shopping_cart',
-#             'tags'
-#         )
+    class Meta:
+        model = Recipe
+        fields = (
+            # 'author',
+            'is_favorited',
+        #     'is_in_shopping_cart',
+        #     'tags'
+        )
+
+    def get_is_favorited(self, queryset, field_name, value):
+        if value:
+            return queryset.filter(
+                favorite_recipe__user=self.request.user
+            )
+        return queryset
+
+    # def get_is_in_shopping_cart(self, queryset, field_name, value):
+        

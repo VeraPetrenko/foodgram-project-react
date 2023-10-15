@@ -59,6 +59,8 @@ class TagViewSet(ModelViewSet):
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = filters_custom.FilterRecipe
 
     def get_queryset(self):
         recipes = Recipe.objects.prefetch_related(
