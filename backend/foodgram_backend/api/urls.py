@@ -12,24 +12,35 @@ from api.views import (
     FollowViewSet,
     FollowListViewSet,
     FavoriteViewSet,
+    CartViewSet,
 )
 
 router = DefaultRouter()
-router_sub_fav = DefaultRouter()
-router_sub_fav.register(
+router_sub_fav_cart = DefaultRouter()
+router_sub_fav_cart.register(
     r'users/(?P<following_id>\d+)/subscribe',
     FollowViewSet,
     basename='subscribe'
 )
-router_sub_fav.register(
+router_sub_fav_cart.register(
     r'users/subscriptions',
     FollowListViewSet,
     basename='subscriptions'
 )
-router_sub_fav.register(
+router_sub_fav_cart.register(
     r'recipes/(?P<recipe_id>\d+)/favorite',
     FavoriteViewSet,
-    basename='subscribe'
+    basename='favorite'
+)
+router_sub_fav_cart.register(
+    r'recipes/(?P<recipe_id>\d+)/shopping_cart',
+    CartViewSet,
+    basename='shopping_cart'
+)
+router_sub_fav_cart.register(
+    r'recipes/download_shopping_cart',
+    CartViewSet,
+    basename='shopping_cart_download'
 )
 router.register(
     'users',
@@ -50,6 +61,6 @@ router.register(
 
 urlpatterns = [
     path('auth/', include('djoser.urls.authtoken')),
-    path('', include(router_sub_fav.urls)),
+    path('', include(router_sub_fav_cart.urls)),
     path('', include(router.urls))
 ]

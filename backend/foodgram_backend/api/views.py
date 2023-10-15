@@ -2,7 +2,7 @@ from django.shortcuts import HttpResponse
 from djoser.views import UserViewSet
 from django_filters import rest_framework as filters
 from rest_framework.viewsets import ModelViewSet
-from recipes.models import Recipe, Tag, Ingredient, Follow, Favorite
+from recipes.models import Recipe, Tag, Ingredient, Follow, Favorite, ShoppingCart
 from api.serializers import (
     TagSerializer,
     RecipeSerializer,
@@ -13,6 +13,7 @@ from api.serializers import (
     UserSerializer,
     UserCreateSerializer,
     FavoriteCreateDeleteSerializer,
+    CartAddDeleteSerializer,
 )
 from core import filters_custom
 from django.contrib.auth import get_user_model
@@ -20,12 +21,26 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-
+from djoser.serializers import SetPasswordSerializer
 
 User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
+
+    @action(["post"], detail=False)
+    def set_password(self, request, *args, **kwargs):
+        request.data['username'] = request.user.username
+        serializer = SetPasswordSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        self.request.user.set_password(serializer.data["new_password"])
+        self.request.user.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(["get"], detail=False)
     def me(self, request):
@@ -37,6 +52,8 @@ class CustomUserViewSet(UserViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return UserCreateSerializer
+        elif self.action == 'set_password':
+            return SetPasswordSerializer
         return UserSerializer
 
 
@@ -136,5 +153,30 @@ class FavoriteViewSet(ModelViewSet):
             Favorite,
             user=request.user,
             recipe=fav_recipe)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CartViewSet(ModelViewSet):
+    queryset = ShoppingCart.objects.all()
+    serializer_class = CartAddDeleteSerializer
+
+    def get_queryset(self):
+        return ShoppingCart.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            user=self.request.user
+        )
+
+    def delete(self, request, *args, **kwargs):
+        cart_recipe = get_object_or_404(
+            Recipe,
+            pk=kwargs['recipe_id']
+        )
+        instance = get_object_or_404(
+            ShoppingCart,
+            user=request.user,
+            recipe=cart_recipe)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)

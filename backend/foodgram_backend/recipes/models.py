@@ -111,6 +111,7 @@ class TagRecipe(models.Model):
 
 
 class Follow(CreatedModel):
+    """Модель подписок на пользователей."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -147,6 +148,23 @@ class Favorite(CreatedModel):
         User,
         on_delete=models.CASCADE,
         related_name='favorite_recipe',
+    )
+
+    class Meta:
+        unique_together = ('user', 'recipe')
+
+
+class ShoppingCart(CreatedModel):
+    """Модель для списка покупок."""
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='cart_recipe',
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='cart_recipe',
     )
 
     class Meta:

@@ -13,6 +13,7 @@ from recipes.models import (
     IngredientRecipe,
     Tag,
     TagRecipe,
+    ShoppingCart
 )
 from users.models import User
 
@@ -139,7 +140,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeSerializer(many=True, source='ingredient_recipe')
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
-    # is_in_shopping_cart = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -149,7 +150,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'author',
             'ingredients',
             'is_favorited',
-            # 'is_in_shopping_cart',
+            'is_in_shopping_cart',
             'name',
             'image',
             'text',
@@ -162,11 +163,11 @@ class RecipeSerializer(serializers.ModelSerializer):
             recipe=instance
         ).exists()
 
-    # def get_is_in_shopping_cart(self, instance):
-    #     return ShoppingCart.objects.filter(
-    #         user=self.context['request'].user,
-    #         recipe=instance
-    #     ).exists()
+    def get_is_in_shopping_cart(self, instance):
+        return ShoppingCart.objects.filter(
+            user=self.context['request'].user,
+            recipe=instance
+        ).exists()
 
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
@@ -358,3 +359,28 @@ class FavoriteCreateDeleteSerializer(serializers.ModelSerializer):
         fav_rec.save()
         return fav_rec
 
+
+class CartAddDeleteSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='shoppingcart.user')
+    recipe = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Favorite
+        fields = ('user', 'recipe',)
+
+    def create(self, validated_data):
+        user = validated_data['user']
+        recipe = get_object_or_404(
+            Recipe,
+            pk=self.context['view'].kwargs['recipe_id']
+        )
+        cart_rec = ShoppingCart(user=user, recipe=recipe)
+        cart_rec.save()
+        return cart_rec
+
+    def get_recipe(self, instance):
+        recipe = instance.recipe
+        return RecipeInFollowSerializer(
+            recipe,
+            context=self.context
+        ).data
