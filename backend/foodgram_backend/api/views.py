@@ -6,7 +6,7 @@ from recipes.models import Recipe, Tag, Ingredient, Follow, Favorite, ShoppingCa
 from api.serializers import (
     TagSerializer,
     RecipeSerializer,
-    RecipeCreateSerializer,
+    RecipeCreateUpdateSerializer,
     IngredientSerializer,
     FollowSerializer,
     FollowCreateDeleteSerializer,
@@ -86,12 +86,57 @@ class RecipeViewSet(ModelViewSet):
         return recipes
 
     def get_serializer_class(self):
-        if self.action == 'create':
-            return RecipeCreateSerializer
+        if self.action == 'create' or self.action == 'update':
+            return RecipeCreateUpdateSerializer
         return RecipeSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = RecipeCreateUpdateSerializer(
+            instance,
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
+        # instance.ingredients.clear()
+        # new_tags = []
+        # for tag in tags:
+        #     new_tags.add(tag.id)
+        # instance.tags.set(new_tags)
+        # for ingredient_data in ingredients:
+        #     IngredientRecipe.objects.update_or_create(
+        #         recipe=instance,
+        #         ingredient=ingredient_data['ingredient'],
+        #         amount=ingredient_data['amount']
+        #     )
+        # return super().update(instance, validated_data)
+
+
+# def update(self, request, *args, **kwargs):
+#         partial = kwargs.pop('partial', False)
+#         instance = self.get_object()
+#         serializer = self.get_serializer(instance, data=request.data, partial=partial)
+#         serializer.is_valid(raise_exception=True)
+#         self.perform_update(serializer)
+
+#         if getattr(instance, '_prefetched_objects_cache', None):
+#             # If 'prefetch_related' has been applied to a queryset, we need to
+#             # forcibly invalidate the prefetch cache on the instance.
+#             instance._prefetched_objects_cache = {}
+
+#         return Response(serializer.data)
+
+#     def perform_update(self, serializer):
+#         serializer.save()
+
+#     def partial_update(self, request, *args, **kwargs):
+#         kwargs['partial'] = True
+#         return self.update(request, *args, **kwargs)
 
 
 class FollowViewSet(ModelViewSet):

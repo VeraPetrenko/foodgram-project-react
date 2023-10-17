@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 
 from core.models import CreatedModel
+from recipes.validatiors import validate_slug
 
 
 User = get_user_model()
@@ -23,12 +24,15 @@ class Tag(CreatedModel):
         default='#ffffff',
         unique=True,
     )
-    # сделать валидатор в сериалайзере ^[-a-zA-Z0-9_]+$
     slug = models.SlugField(
         'Уникальный слаг тега',
         max_length=SLUG_LENGTH,
         unique=True,
+        validators=(validate_slug,),
     )
+
+    def __str__(self):
+        return self.name[0:15]
 
 
 class Recipe(CreatedModel):
@@ -37,33 +41,36 @@ class Recipe(CreatedModel):
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор рецепта',
-        related_name='recipes'
+        related_name='recipes',
     )
     name = models.CharField(
         verbose_name='Название рецепта',
-        max_length=200
+        max_length=200,
     )
     image = models.ImageField(
         upload_to='',
         null=True,
-        default=None
+        default=None,
     )
     text = models.TextField(
-        verbose_name='Описание рецепта'
+        verbose_name='Описание рецепта',
     )
     ingredients = models.ManyToManyField(
         'Ingredient',
         through='IngredientRecipe',
-        verbose_name='Ингредиенты рецепта'
+        verbose_name='Ингредиенты рецепта',
     )
     tags = models.ManyToManyField(
         'Tag',
         through='TagRecipe',
-        verbose_name='Теги рецепта'
+        verbose_name='Теги рецепта',
     )
     cooking_time = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
     )
+
+    def __str__(self):
+        return self.name[0:15]
 
 
 class Ingredient(CreatedModel):
@@ -77,18 +84,21 @@ class Ingredient(CreatedModel):
         max_length=NAME_LENGTH,
     )
 
+    def __str__(self):
+        return self.name[0:15]
+
 
 class IngredientRecipe(models.Model):
     """Модель связи ингредиентов и рецептов."""
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='ingredient_recipe'
+        related_name='ingredient_recipe',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_recipe'
+        related_name='ingredient_recipe',
     )
     amount = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
@@ -101,12 +111,12 @@ class TagRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='tag_recipe'
+        related_name='tag_recipe',
     )
     tag = models.ForeignKey(
         Tag,
         on_delete=models.CASCADE,
-        related_name='tag_recipe'
+        related_name='tag_recipe',
     )
 
 
@@ -116,13 +126,13 @@ class Follow(CreatedModel):
         User,
         on_delete=models.CASCADE,
         verbose_name='Фолловер',
-        related_name='follower'
+        related_name='follower',
     )
     following = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор постов',
-        related_name='following'
+        related_name='following',
     )
 
     class Meta:
@@ -134,7 +144,10 @@ class Follow(CreatedModel):
         ]
 
     def __str__(self):
-        return f'Подписка на {self.following.username}'
+        return (
+            f'Подписка {self.user.username}'
+            f'на {self.following.username}'
+        )
 
 
 class Favorite(CreatedModel):
@@ -153,6 +166,12 @@ class Favorite(CreatedModel):
     class Meta:
         unique_together = ('user', 'recipe')
 
+    def __str__(self):
+        return (
+            f'Избранное пользователя {self.user.username} - '
+            f'рецепт {self.recipe.name}'
+        )
+
 
 class ShoppingCart(CreatedModel):
     """Модель для списка покупок."""
@@ -169,3 +188,9 @@ class ShoppingCart(CreatedModel):
 
     class Meta:
         unique_together = ('user', 'recipe')
+
+    def __str__(self):
+        return (
+            f'Корзина пользователя {self.user.username} - '
+            f'рецепт {self.recipe.name}'
+        )

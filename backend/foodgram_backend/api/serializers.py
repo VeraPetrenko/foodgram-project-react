@@ -54,7 +54,7 @@ class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
             'last_name',
             'password',
         )
-
+    
 
 class TagSerializer(serializers.ModelSerializer):
 
@@ -201,7 +201,7 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class RecipeCreateSerializer(serializers.ModelSerializer):
+class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeCreateSerializer(
         many=True,
         source='ingredient_recipe'
@@ -216,12 +216,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all()
     )
-    # tags = TagRecipeCreateSerializer(
-    #     many=True,
-    #     source='tag_recipe'
-    # )
-
-    # tags = TagSerializer(many=True, )
 
     class Meta:
         model = Recipe
@@ -253,6 +247,28 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ).save()
         return instance
 
+    def to_representation(self, instance):
+        representation = super(RecipeCreateUpdateSerializer, self).to_representation(instance)
+        representation['tags'] = TagSerializer(instance.tags.all(), many=True).data
+        return representation
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredient_recipe')
+        instance.ingredients.clear()
+        new_tags = []
+        for tag in tags:
+            new_tags.append(tag.id)
+        instance.tags.set(new_tags)
+        for ingredient_data in ingredients:
+            IngredientRecipe.objects.update_or_create(
+                recipe=instance,
+                ingredient=ingredient_data['ingredient'],
+                amount=ingredient_data['amount']
+            )
+        return super().update(instance, validated_data)
+
+
 
 class FollowCreateDeleteSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='follow.user')
@@ -278,11 +294,19 @@ class FollowCreateDeleteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Невозможно подписаться на себя'
             )
-        if len(Follow.objects.filter(user=user, following=value)) > 0:
+        return value
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        following = get_object_or_404(
+            User,
+            pk=self.context['request'].parser_context['kwargs']['following_id']
+        )
+        if len(Follow.objects.filter(user=user, following=following)) > 0:
             raise serializers.ValidationError(
                 'Подписка уже существует'
             )
-        return value
+        return super().validate(attrs)
 
 
 class RecipeInFollowSerializer(serializers.ModelSerializer):
@@ -359,6 +383,18 @@ class FavoriteCreateDeleteSerializer(serializers.ModelSerializer):
         fav_rec.save()
         return fav_rec
 
+    def validate(self, attrs):
+        user = self.context['request'].user
+        recipe = get_object_or_404(
+            Recipe,
+            pk=self.context['request'].parser_context['kwargs']['recipe_id']
+        )
+        if len(Favorite.objects.filter(user=user, recipe=recipe)) > 0:
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в избранное'
+            )
+        return super().validate(attrs)
+
 
 class CartAddDeleteSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='shoppingcart.user')
@@ -384,3 +420,15 @@ class CartAddDeleteSerializer(serializers.ModelSerializer):
             recipe,
             context=self.context
         ).data
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        recipe = get_object_or_404(
+            Recipe,
+            pk=self.context['request'].parser_context['kwargs']['recipe_id']
+        )
+        if len(ShoppingCart.objects.filter(user=user, recipe=recipe)) > 0:
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в корзину'
+            )
+        return super().validate(attrs)
