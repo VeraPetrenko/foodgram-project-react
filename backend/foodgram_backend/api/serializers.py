@@ -1,6 +1,7 @@
 import base64
 from django.core.files.base import ContentFile
 from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 import djoser.serializers
 from django.shortcuts import get_object_or_404
@@ -16,6 +17,7 @@ from recipes.models import (
     ShoppingCart
 )
 from users.models import User
+from core.validators import validate_username
 
 
 class UserSerializer(djoser.serializers.UserSerializer):
@@ -43,7 +45,7 @@ class UserSerializer(djoser.serializers.UserSerializer):
 
 
 class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
-    #добавить валидацию
+
     class Meta:
         model = User
         fields = (
@@ -54,7 +56,13 @@ class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
             'last_name',
             'password',
         )
-    
+
+    def validate_username(self, value):
+        if value and User.objects.filter(username=value).exists():
+            raise serializers.ValidationError('Username уже занят.')
+        validate_username(value)
+        return value
+
 
 class TagSerializer(serializers.ModelSerializer):
 
@@ -268,6 +276,19 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             )
         return super().update(instance, validated_data)
 
+    def validate(self, attrs):
+        if len(attrs['tags']) < 1:
+            return ValidationError('Не выбрано ни одного тега.')
+        if len(set(attrs['tags'])) != len(attrs['tags']):
+            return ValidationError('Теги дублируются.')
+        if len(attrs['ingredient_recipe']) < 1:
+            return ValidationError('Не указан ни один ингредиент.')
+        ingredients = [ingredient['ingredient'].id for ingredient in attrs['ingredient_recipe']]
+        if len(set(ingredients)) != (
+            len(attrs['ingredient_recipe'])
+        ):
+            return ValidationError('Ингредиенты дублируются.')
+        return super().validate(attrs)
 
 
 class FollowCreateDeleteSerializer(serializers.ModelSerializer):

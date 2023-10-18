@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from users.validators import validate_username
+from core.validators import validate_username
 
 ROLE_LENGTH = 30
 EMAIL_LENGTH = 254

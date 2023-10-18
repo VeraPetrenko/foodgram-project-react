@@ -3,7 +3,7 @@ from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 
 from core.models import CreatedModel
-from recipes.validatiors import validate_slug
+from core.validators import validate_slug
 
 
 User = get_user_model()
@@ -68,6 +68,9 @@ class Recipe(CreatedModel):
     cooking_time = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
     )
+
+    class Meta:
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.name[0:15]

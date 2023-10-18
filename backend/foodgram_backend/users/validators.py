@@ -8,5 +8,5 @@ def validate_username(value):
     if not re.match(pattern_username, value):
         raise ValidationError(
             'Username должен содержать только буквы, точки,'
-            '@, +, -, дефисы или знаки подчеркивания.'
+            '@, +, -, дефисы.'
         )

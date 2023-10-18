@@ -10,3 +10,12 @@ def validate_slug(value):
             'Slug должен содержать только буквы, '
             'числа, дефисы или знаки подчеркивания.'
         )
+
+
+def validate_username(value):
+    pattern_username = r'^[\w.@+-]+\Z'
+    if not re.match(pattern_username, value):
+        raise ValidationError(
+            'Username должен содержать только буквы, точки,'
+            '@, +, -, дефисы.'
+        )
