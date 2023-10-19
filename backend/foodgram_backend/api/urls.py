@@ -37,11 +37,6 @@ router_sub_fav_cart.register(
     CartViewSet,
     basename='shopping_cart'
 )
-router_sub_fav_cart.register(
-    r'recipes/download_shopping_cart',
-    CartViewSet,
-    basename='shopping_cart_download'
-)
 router.register(
     'users',
     CustomUserViewSet

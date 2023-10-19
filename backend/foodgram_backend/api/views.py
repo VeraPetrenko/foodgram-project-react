@@ -1,8 +1,9 @@
 from django.shortcuts import HttpResponse
 from djoser.views import UserViewSet
 from django_filters import rest_framework as filters
+from django.http import HttpResponse
 from rest_framework.viewsets import ModelViewSet
-from recipes.models import Recipe, Tag, Ingredient, Follow, Favorite, ShoppingCart
+from recipes.models import Recipe, Tag, Ingredient, Follow, Favorite, ShoppingCart, IngredientRecipe
 from api.serializers import (
     TagSerializer,
     RecipeSerializer,
@@ -28,7 +29,7 @@ User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
 
-    @action(["post"], detail=False)
+    @action(['post'], detail=False)
     def set_password(self, request, *args, **kwargs):
         request.data['username'] = request.user.username
         serializer = SetPasswordSerializer(
@@ -42,7 +43,7 @@ class CustomUserViewSet(UserViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["get"], detail=False)
+    @action(['get'], detail=False)
     def me(self, request):
         user = get_object_or_404(User, id=request.user.id)
         serializer = UserSerializer(user)
@@ -103,40 +104,37 @@ class RecipeViewSet(ModelViewSet):
         self.perform_update(serializer)
 
         return Response(serializer.data)
-        # instance.ingredients.clear()
-        # new_tags = []
-        # for tag in tags:
-        #     new_tags.add(tag.id)
-        # instance.tags.set(new_tags)
-        # for ingredient_data in ingredients:
-        #     IngredientRecipe.objects.update_or_create(
-        #         recipe=instance,
-        #         ingredient=ingredient_data['ingredient'],
-        #         amount=ingredient_data['amount']
-        #     )
-        # return super().update(instance, validated_data)
 
+    @action(['get'], detail=False)
+    def download_shopping_cart(self, request, *args, **kwargs):
+        recipes_in_cart = self.get_queryset().filter(cart_recipe__user=self.request.user)
+        ingredients_with_amount = list(
+            IngredientRecipe.objects.filter(
+                recipe__cart_recipe__user=self.request.user
+            ).values(
+                'ingredient__name',
+                'ingredient__measurement_unit',
+                'amount'
+            )
+        )
+        ingredients = {}
+        for ingredient in ingredients_with_amount:
+            if ingredient['ingredient__name'] not in ingredients.keys():
+                ingredients[ingredient['ingredient__name']] = [
+                    ingredient['ingredient__measurement_unit'],
+                    ingredient['amount']
+                ]
+            else:
+                ingredients[ingredient['ingredient__name']][1] += ingredient['amount']
 
-# def update(self, request, *args, **kwargs):
-#         partial = kwargs.pop('partial', False)
-#         instance = self.get_object()
-#         serializer = self.get_serializer(instance, data=request.data, partial=partial)
-#         serializer.is_valid(raise_exception=True)
-#         self.perform_update(serializer)
-
-#         if getattr(instance, '_prefetched_objects_cache', None):
-#             # If 'prefetch_related' has been applied to a queryset, we need to
-#             # forcibly invalidate the prefetch cache on the instance.
-#             instance._prefetched_objects_cache = {}
-
-#         return Response(serializer.data)
-
-#     def perform_update(self, serializer):
-#         serializer.save()
-
-#     def partial_update(self, request, *args, **kwargs):
-#         kwargs['partial'] = True
-#         return self.update(request, *args, **kwargs)
+        shopping_list_file: str = f'Список ингредиентов к покупке:' + '\n'
+        for ingredient in ingredients:
+            shopping_list_file += (
+                f'• {ingredient} '
+                f'({ingredients[ingredient][0]}) - '
+                f'{ingredients[ingredient][1]}'
+            ) + '\n'
+        return HttpResponse(shopping_list_file, content_type='text/plain')
 
 
 class FollowViewSet(ModelViewSet):
