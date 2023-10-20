@@ -1,18 +1,15 @@
-from django.contrib import admin
 from django.urls import path, include
-
-
 from rest_framework.routers import DefaultRouter
 
 from api.views import (
-    CustomUserViewSet,
-    RecipeViewSet,
-    IngredientViewSet,
-    TagViewSet,
-    FollowViewSet,
-    FollowListViewSet,
-    FavoriteViewSet,
     CartViewSet,
+    CustomUserViewSet,
+    IngredientViewSet,
+    FavoriteViewSet,
+    FollowListViewSet,
+    FollowViewSet,
+    RecipeViewSet,
+    TagViewSet,
 )
 
 router = DefaultRouter()

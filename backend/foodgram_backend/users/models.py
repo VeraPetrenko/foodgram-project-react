@@ -6,8 +6,6 @@ from core.validators import validate_username
 ROLE_LENGTH = 30
 EMAIL_LENGTH = 254
 USERNAME_LENGTH = 150
-
-
 USERS_ROLES = (
     ('admin', 'admin'),
     ('user', 'user'),

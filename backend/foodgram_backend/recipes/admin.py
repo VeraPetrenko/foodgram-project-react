@@ -8,7 +8,7 @@ from recipes.models import (
     TagRecipe,
     Follow,
     Favorite,
-    ShoppingCart
+    ShoppingCart,
 )
 
 

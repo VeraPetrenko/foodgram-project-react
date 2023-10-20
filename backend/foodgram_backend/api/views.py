@@ -1,9 +1,15 @@
-from django.shortcuts import HttpResponse
-from djoser.views import UserViewSet
+from django.contrib.auth import get_user_model
 from django_filters import rest_framework as filters
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet
+from djoser.serializers import SetPasswordSerializer
+from rest_framework import permissions
+from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
-from recipes.models import Recipe, Tag, Ingredient, Follow, Favorite, ShoppingCart, IngredientRecipe
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from api.serializers import (
     TagSerializer,
     RecipeSerializer,
@@ -17,24 +23,24 @@ from api.serializers import (
     CartAddDeleteSerializer,
 )
 from core import filters_custom
-from django.contrib.auth import get_user_model
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from djoser.serializers import SetPasswordSerializer
+from recipes.models import (
+    Recipe,
+    Tag,
+    Ingredient,
+    Follow,
+    Favorite,
+    ShoppingCart,
+    IngredientRecipe,
+)
 from users.permissions import (
-    IsAdmin,
     IsAdminOrReadOnly,
     IsAdminOrOwner,
 )
-from rest_framework import permissions
 
 User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-
     @action(['post'], detail=False)
     def set_password(self, request, *args, **kwargs):
         request.data['username'] = request.user.username
@@ -138,15 +144,16 @@ class RecipeViewSet(ModelViewSet):
         )
         ingredients = {}
         for ingredient in ingredients_with_amount:
-            if ingredient['ingredient__name'] not in ingredients.keys():
-                ingredients[ingredient['ingredient__name']] = [
+            ingr = ingredient['ingredient__name']
+            if ingr not in ingredients.keys():
+                ingredients[ingr] = [
                     ingredient['ingredient__measurement_unit'],
                     ingredient['amount']
                 ]
             else:
-                ingredients[ingredient['ingredient__name']][1] += ingredient['amount']
+                ingredients[ingr][1] += ingredient['amount']
 
-        shopping_list_file: str = f'Список ингредиентов к покупке:' + '\n'
+        shopping_list_file: str = 'Список ингредиентов к покупке:' + '\n'
         for ingredient in ingredients:
             shopping_list_file += (
                 f'• {ingredient} '
@@ -222,7 +229,6 @@ class FavoriteViewSet(ModelViewSet):
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrOwner,
     )
-
 
     def get_queryset(self):
         return Favorite.objects.filter(user=self.request.user)
