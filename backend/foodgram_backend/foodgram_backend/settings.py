@@ -74,8 +74,7 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB', 'foodgrm'),
         'USER': os.getenv('POSTGRES_USER', 'foodgram_user'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'foodgram_password'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        # 'HOST': os.getenv('DB_HOST', 'db'),
+        'HOST': os.getenv('DB_HOST', 'db'),
         'PORT': os.getenv('DB_PORT', 5432),
     }
 }
@@ -118,11 +117,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = BASE_DIR / 'static'
 
 MEDIA_URL = '/media/'
 # после настройки в контейнерах поменять на /media
-MEDIA_ROOT = 'recipes/images'
+MEDIA_ROOT = '/media'
+# MEDIA_ROOT = 'recipes/images'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -154,7 +154,9 @@ DJOSER = {
     'HIDE_USERS': False,
     'PERMISSIONS': {
         'user': ['rest_framework.permissions.AllowAny'],
-        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user_list': ['rest_framework.permissions.IsAuthenticated'],
         'token_create': ['rest_framework.permissions.AllowAny'],
+        'user_delete': ['users.permissions.IsAdminOrOwner'],
+        'set_password': ['users.permissions.IsAdminOrOwner'],
     },
 }

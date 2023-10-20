@@ -23,6 +23,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from djoser.serializers import SetPasswordSerializer
+from users.permissions import (
+    IsAdmin,
+    IsAdminOrReadOnly,
+    IsAdminOrOwner,
+)
+from rest_framework import permissions
 
 User = get_user_model()
 
@@ -47,7 +53,6 @@ class CustomUserViewSet(UserViewSet):
     def me(self, request):
         user = get_object_or_404(User, id=request.user.id)
         serializer = UserSerializer(user)
-        # пермишн будет только авторизованный
         return Response(serializer.data)
 
     def get_serializer_class(self):
@@ -57,11 +62,20 @@ class CustomUserViewSet(UserViewSet):
             return SetPasswordSerializer
         return UserSerializer
 
+    def get_permissions(self):
+        if self.action == 'me' or self.action == 'set_password':
+            self.permission_classes = (
+                permissions.IsAuthenticated,
+            )
+        return super().get_permissions()
+
 
 class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-
+    permission_classes = (
+        IsAdminOrReadOnly,
+    )
     pagination_class = None
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = filters_custom.FilterIngredient
@@ -70,6 +84,9 @@ class IngredientViewSet(ModelViewSet):
 class TagViewSet(ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    permission_classes = (
+        IsAdminOrReadOnly,
+    )
 
     pagination_class = None
 
@@ -79,6 +96,9 @@ class RecipeViewSet(ModelViewSet):
     serializer_class = RecipeSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = filters_custom.FilterRecipe
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+    )
 
     def get_queryset(self):
         recipes = Recipe.objects.prefetch_related(
@@ -107,7 +127,6 @@ class RecipeViewSet(ModelViewSet):
 
     @action(['get'], detail=False)
     def download_shopping_cart(self, request, *args, **kwargs):
-        recipes_in_cart = self.get_queryset().filter(cart_recipe__user=self.request.user)
         ingredients_with_amount = list(
             IngredientRecipe.objects.filter(
                 recipe__cart_recipe__user=self.request.user
@@ -136,10 +155,27 @@ class RecipeViewSet(ModelViewSet):
             ) + '\n'
         return HttpResponse(shopping_list_file, content_type='text/plain')
 
+    def get_permissions(self):
+        if self.action == 'get':
+            self.permission_classes = (
+                permissions.AllowAny,
+            )
+        elif self.action == 'update' or (
+            self.action == 'download_shopping_cart'
+        ):
+            self.permission_classes = (
+                IsAdminOrOwner,
+            )
+        return super().get_permissions()
+
 
 class FollowViewSet(ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrOwner,
+    )
 
     def get_queryset(self):
         return Follow.objects.filter(user=self.request.user)
@@ -170,6 +206,10 @@ class FollowViewSet(ModelViewSet):
 class FollowListViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = FollowSerializer
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrOwner,
+    )
 
     def get_queryset(self):
         return Follow.objects.filter(user=self.request.user)
@@ -178,6 +218,11 @@ class FollowListViewSet(ModelViewSet):
 class FavoriteViewSet(ModelViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteCreateDeleteSerializer
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrOwner,
+    )
+
 
     def get_queryset(self):
         return Favorite.objects.filter(user=self.request.user)
@@ -203,6 +248,10 @@ class FavoriteViewSet(ModelViewSet):
 class CartViewSet(ModelViewSet):
     queryset = ShoppingCart.objects.all()
     serializer_class = CartAddDeleteSerializer
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrOwner,
+    )
 
     def get_queryset(self):
         return ShoppingCart.objects.filter(user=self.request.user)

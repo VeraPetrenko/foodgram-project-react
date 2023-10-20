@@ -36,7 +36,7 @@ class UserSerializer(djoser.serializers.UserSerializer):
 
     def get_is_subscribed(self, instance):
         request = self.context.get('request')
-        if not request:
+        if not request or request.user.is_anonymous:
             return False
         return Follow.objects.filter(
             user=request.user,
@@ -166,12 +166,18 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, instance):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
         return Favorite.objects.filter(
             user=self.context['request'].user,
             recipe=instance
         ).exists()
 
     def get_is_in_shopping_cart(self, instance):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
         return ShoppingCart.objects.filter(
             user=self.context['request'].user,
             recipe=instance
