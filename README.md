@@ -9,7 +9,6 @@ git@github.com:VeraPetrenko/foodgram-project-react.git
 cd foodgram
 ```
 
-```
 Запустить проект локально:
 ```
 docker compose -f docker-compose.yml
