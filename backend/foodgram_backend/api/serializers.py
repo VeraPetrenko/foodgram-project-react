@@ -41,7 +41,7 @@ class UserSerializer(djoser.serializers.UserSerializer):
         return Follow.objects.filter(
             user=request.user,
             following=instance
-            ).exists()
+        ).exists()
 
 
 class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
@@ -283,10 +283,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         if len(attrs['ingredient_recipe']) < 1:
             return ValidationError('Не указан ни один ингредиент.')
         ingredients = [
-            ingredient[
-                'ingredient'].id for ingredient in attrs[
-                    'ingredient_recipe'
-                ]
+            ingredient['ingredient'].id for ingredient in
+            attrs['ingredient_recipe']
         ]
         if len(set(ingredients)) != (
             len(attrs['ingredient_recipe'])
