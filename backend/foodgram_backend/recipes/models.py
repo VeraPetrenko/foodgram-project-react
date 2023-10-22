@@ -105,7 +105,10 @@ class IngredientRecipe(models.Model):
         on_delete=models.CASCADE,
         related_name="ingredient_recipe",
     )
-    amount = models.PositiveIntegerField(validators=[MinValueValidator(1)], default=1)
+    amount = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        default=1
+    )
 
 
 class TagRecipe(models.Model):
@@ -189,5 +192,6 @@ class ShoppingCart(CreatedModel):
 
     def __str__(self):
         return (
-            f"Корзина пользователя {self.user.username} - " f"рецепт {self.recipe.name}"
+            f"Корзина пользователя {self.user.username} - "
+            f"рецепт {self.recipe.name}"
         )

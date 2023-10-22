@@ -15,16 +15,24 @@ from api.views import (
 router = DefaultRouter()
 router_sub_fav_cart = DefaultRouter()
 router_sub_fav_cart.register(
-    r"users/(?P<following_id>\d+)/subscribe", FollowViewSet, basename="subscribe"
+    r"users/(?P<following_id>\d+)/subscribe",
+    FollowViewSet,
+    basename="subscribe"
 )
 router_sub_fav_cart.register(
-    "users/subscriptions", FollowListViewSet, basename="subscriptions"
+    "users/subscriptions",
+    FollowListViewSet,
+    basename="subscriptions"
 )
 router_sub_fav_cart.register(
-    r"recipes/(?P<recipe_id>\d+)/favorite", FavoriteViewSet, basename="favorite"
+    r"recipes/(?P<recipe_id>\d+)/favorite",
+    FavoriteViewSet,
+    basename="favorite"
 )
 router_sub_fav_cart.register(
-    r"recipes/(?P<recipe_id>\d+)/shopping_cart", CartViewSet, basename="shopping_cart"
+    r"recipes/(?P<recipe_id>\d+)/shopping_cart",
+    CartViewSet,
+    basename="shopping_cart"
 )
 router.register("users", CustomUserViewSet)
 router.register("tags", TagViewSet)

@@ -123,7 +123,11 @@ class RecipeViewSet(ModelViewSet):
         ingredients_with_amount = list(
             IngredientRecipe.objects.filter(
                 recipe__cart_recipe__user=self.request.user
-            ).values("ingredient__name", "ingredient__measurement_unit", "amount")
+            ).values(
+                "ingredient__name",
+                "ingredient__measurement_unit",
+                "amount"
+            )
         )
         ingredients = {}
         for ingredient in ingredients_with_amount:
@@ -148,7 +152,9 @@ class RecipeViewSet(ModelViewSet):
     def get_permissions(self):
         if self.action == "get":
             self.permission_classes = (permissions.AllowAny,)
-        elif self.action == "update" or (self.action == "download_shopping_cart"):
+        elif self.action == "update" or (
+            self.action == "download_shopping_cart"
+        ):
             self.permission_classes = (IsAdminOrOwner,)
         return super().get_permissions()
 
@@ -169,7 +175,11 @@ class FollowViewSet(ModelViewSet):
 
     def delete(self, request, *args, **kwargs):
         following = get_object_or_404(User, pk=kwargs["following_id"])
-        instance = get_object_or_404(Follow, user=request.user, following=following)
+        instance = get_object_or_404(
+            Follow,
+            user=request.user,
+            following=following
+        )
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -207,7 +217,11 @@ class FavoriteViewSet(ModelViewSet):
 
     def delete(self, request, *args, **kwargs):
         fav_recipe = get_object_or_404(Recipe, pk=kwargs["recipe_id"])
-        instance = get_object_or_404(Favorite, user=request.user, recipe=fav_recipe)
+        instance = get_object_or_404(
+            Favorite,
+            user=request.user,
+            recipe=fav_recipe
+        )
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
