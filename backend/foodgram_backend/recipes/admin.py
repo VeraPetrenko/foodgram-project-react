@@ -24,27 +24,27 @@ class TagRecipeInLine(admin.TabularInline):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('user', 'recipe',)
 
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('user', 'recipe',)
 
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('user', 'following',)
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'color', 'slug',)
 
 
 @admin.register(TagRecipe)
 class TagRecipeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('recipe', 'tag',)
 
 
 @admin.register(Recipe)
@@ -85,4 +85,4 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(IngredientRecipe)
 class IngredientRecipeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('recipe', 'ingredient', 'amount',)

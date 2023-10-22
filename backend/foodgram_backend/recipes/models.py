@@ -6,9 +6,11 @@ from core.models import CreatedModel
 from core.validators import validate_slug
 
 
-User = get_user_model()
 NAME_LENGTH = 200
 SLUG_LENGTH = 200
+
+
+User = get_user_model()
 
 
 class Tag(CreatedModel):
@@ -19,7 +21,7 @@ class Tag(CreatedModel):
         unique=True,
     )
     color = models.CharField(
-        max_length=7,
+        max_length=31,
         null=True,
         default='#ffffff',
         unique=True,
@@ -48,7 +50,7 @@ class Recipe(CreatedModel):
         max_length=200,
     )
     image = models.ImageField(
-        upload_to='',
+        upload_to='media/',
         null=True,
         default=None,
     )

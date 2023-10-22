@@ -93,7 +93,6 @@ class TagViewSet(ModelViewSet):
     permission_classes = (
         IsAdminOrReadOnly,
     )
-
     pagination_class = None
 
 

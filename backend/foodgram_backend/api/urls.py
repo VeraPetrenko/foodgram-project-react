@@ -20,7 +20,7 @@ router_sub_fav_cart.register(
     basename='subscribe'
 )
 router_sub_fav_cart.register(
-    r'users/subscriptions',
+    'users/subscriptions',
     FollowListViewSet,
     basename='subscriptions'
 )

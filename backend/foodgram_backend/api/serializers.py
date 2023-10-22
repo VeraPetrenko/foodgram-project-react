@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 
+from core import validators
 from recipes.models import (
     Ingredient,
     Favorite,
@@ -16,7 +17,6 @@ from recipes.models import (
     ShoppingCart
 )
 from users.models import User
-from core.validators import validate_username
 
 
 class UserSerializer(djoser.serializers.UserSerializer):
@@ -36,17 +36,16 @@ class UserSerializer(djoser.serializers.UserSerializer):
 
     def get_is_subscribed(self, instance):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return Follow.objects.filter(
-            user=request.user,
-            following=instance
-        ).exists()
+        return request and request.user.is_authenticated and (
+            Follow.objects.filter(
+                user=request.user,
+                following=instance
+            ).exists()
+        )
 
 
 class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
     """Сериализатор для создания объектов пользователей."""
-
     class Meta:
         model = User
         fields = (
@@ -61,7 +60,7 @@ class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
     def validate_username(self, value):
         if value and User.objects.filter(username=value).exists():
             raise serializers.ValidationError('Username уже занят.')
-        validate_username(value)
+        validators.validate_username(value)
         return value
 
 
@@ -154,21 +153,21 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, instance):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return Favorite.objects.filter(
-            user=self.context['request'].user,
-            recipe=instance
-        ).exists()
+        return request and request.user.is_authenticated and (
+            Favorite.objects.filter(
+                user=request.user,
+                recipe=instance
+            ).exists()
+        )
 
     def get_is_in_shopping_cart(self, instance):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return ShoppingCart.objects.filter(
-            user=self.context['request'].user,
-            recipe=instance
-        ).exists()
+        return request and request.user.is_authenticated and (
+            ShoppingCart.objects.filter(
+                user=request.user,
+                recipe=instance
+            ).exists()
+        )
 
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
@@ -321,10 +320,11 @@ class FollowCreateDeleteSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        user = self.context['request'].user
+        request = self.context.get('request')
+        user = request.user
         following = get_object_or_404(
             User,
-            pk=self.context['request'].parser_context['kwargs']['following_id']
+            pk=request.parser_context['kwargs']['following_id']
         )
         if len(Follow.objects.filter(user=user, following=following)) > 0:
             raise serializers.ValidationError(
@@ -370,12 +370,12 @@ class FollowSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, instance):
-        if Follow.objects.filter(
-            user=instance.user,
-            following=instance.following
-        ).exists():
-            return True
-        return False
+        return (
+            Follow.objects.filter(
+                user=instance.user,
+                following=instance.following
+            ).exists()
+        )
 
     def get_recipes_count(self, instance):
         return Recipe.objects.filter(author=instance.following).count()
@@ -409,10 +409,11 @@ class FavoriteCreateDeleteSerializer(serializers.ModelSerializer):
         return fav_rec
 
     def validate(self, attrs):
-        user = self.context['request'].user
+        request = self.context.get('request')
+        user = request.user
         recipe = get_object_or_404(
             Recipe,
-            pk=self.context['request'].parser_context['kwargs']['recipe_id']
+            pk=request.parser_context['kwargs']['recipe_id']
         )
         if len(Favorite.objects.filter(user=user, recipe=recipe)) > 0:
             raise serializers.ValidationError(
@@ -448,10 +449,11 @@ class CartAddDeleteSerializer(serializers.ModelSerializer):
         ).data
 
     def validate(self, attrs):
-        user = self.context['request'].user
+        request = self.context.get('request')
+        user = request.user
         recipe = get_object_or_404(
             Recipe,
-            pk=self.context['request'].parser_context['kwargs']['recipe_id']
+            pk=request.parser_context['kwargs']['recipe_id']
         )
         if len(ShoppingCart.objects.filter(user=user, recipe=recipe)) > 0:
             raise serializers.ValidationError(
