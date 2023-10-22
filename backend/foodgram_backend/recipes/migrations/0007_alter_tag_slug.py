@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('recipes', '0006_shoppingcart'),
+        ("recipes", "0006_shoppingcart"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='tag',
-            name='slug',
-            field=models.SlugField(max_length=200, unique=True, validators=[core.validators.validate_slug], verbose_name='Уникальный слаг тега'),
+            model_name="tag",
+            name="slug",
+            field=models.SlugField(
+                max_length=200,
+                unique=True,
+                validators=[core.validators.validate_slug],
+                verbose_name="Уникальный слаг тега",
+            ),
         ),
     ]

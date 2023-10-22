@@ -24,46 +24,69 @@ class TagRecipeInLine(admin.TabularInline):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('user', 'recipe',)
+    list_display = (
+        "user",
+        "recipe",
+    )
 
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'recipe',)
+    list_display = (
+        "user",
+        "recipe",
+    )
 
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('user', 'following',)
+    list_display = (
+        "user",
+        "following",
+    )
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'color', 'slug',)
+    list_display = (
+        "name",
+        "color",
+        "slug",
+    )
 
 
 @admin.register(TagRecipe)
 class TagRecipeAdmin(admin.ModelAdmin):
-    list_display = ('recipe', 'tag',)
+    list_display = (
+        "recipe",
+        "tag",
+    )
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    inlines = (IngredientRecipeInLine, TagRecipeInLine,)
-    list_display = (
-        'id',
-        'author',
-        'name',
-        'favorites_count',
+    inlines = (
+        IngredientRecipeInLine,
+        TagRecipeInLine,
     )
-    list_filter = ('author', 'name', 'tags__name',)
-    empty_value_display = '-пусто-'
+    list_display = (
+        "id",
+        "author",
+        "name",
+        "favorites_count",
+    )
+    list_filter = (
+        "author",
+        "name",
+        "tags__name",
+    )
+    empty_value_display = "-пусто-"
     list_editable = (
-        'author',
-        'name',
+        "author",
+        "name",
     )
 
-    @admin.display(description='Количество добавлений в избранное')
+    @admin.display(description="Количество добавлений в избранное")
     def favorites_count(self, object):
         return Favorite.objects.filter(recipe=object).count()
 
@@ -71,18 +94,22 @@ class RecipeAdmin(admin.ModelAdmin):
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'name',
-        'measurement_unit',
+        "id",
+        "name",
+        "measurement_unit",
     )
-    list_filter = ('name',)
-    empty_value_display = '-пусто-'
+    list_filter = ("name",)
+    empty_value_display = "-пусто-"
     list_editable = (
-        'name',
-        'measurement_unit',
+        "name",
+        "measurement_unit",
     )
 
 
 @admin.register(IngredientRecipe)
 class IngredientRecipeAdmin(admin.ModelAdmin):
-    list_display = ('recipe', 'ingredient', 'amount',)
+    list_display = (
+        "recipe",
+        "ingredient",
+        "amount",
+    )

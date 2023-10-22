@@ -9,3 +9,4 @@ webcolors==1.13
 pillow==10.0.1
 django-filter==23.3
 gunicorn==20.1.0
+black==23.10.0

@@ -7,52 +7,40 @@ ROLE_LENGTH = 30
 EMAIL_LENGTH = 254
 USERNAME_LENGTH = 150
 USERS_ROLES = (
-    ('admin', 'admin'),
-    ('user', 'user'),
+    ("admin", "admin"),
+    ("user", "user"),
 )
 
 
 class User(AbstractUser):
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = [
-        'username',
-        'first_name',
-        'last_name',
-        'password'
-    ]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "first_name", "last_name", "password"]
     username = models.CharField(
         validators=(validate_username,),
         max_length=USERNAME_LENGTH,
         unique=True,
-        verbose_name='Username'
+        verbose_name="Username",
     )
     role = models.CharField(
-        max_length=ROLE_LENGTH,
-        choices=USERS_ROLES,
-        default='user',
-        blank=True
+        max_length=ROLE_LENGTH, choices=USERS_ROLES, default="user", blank=True
     )
     email = models.EmailField(
         max_length=EMAIL_LENGTH,
         unique=True,
-        verbose_name='Email',
+        verbose_name="Email",
         blank=True,
-        default='default@ya.ru'
+        default="default@ya.ru",
     )
     first_name = models.CharField(
-        max_length=USERNAME_LENGTH,
-        blank=True,
-        verbose_name='Имя'
+        max_length=USERNAME_LENGTH, blank=True, verbose_name="Имя"
     )
     last_name = models.CharField(
-        max_length=USERNAME_LENGTH,
-        blank=True,
-        verbose_name='Фамилия'
+        max_length=USERNAME_LENGTH, blank=True, verbose_name="Фамилия"
     )
 
     @property
     def is_admin(self):
-        return self.role == 'admin'
+        return self.role == "admin"
 
     class Meta:
-        ordering = ('id',)
+        ordering = ("id",)

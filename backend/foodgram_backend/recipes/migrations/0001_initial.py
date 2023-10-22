@@ -6,68 +6,180 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Ingredient',
+            name="Ingredient",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('pub_date', models.DateTimeField(auto_now_add=True, help_text='Дата создания', verbose_name='Дата создания')),
-                ('name', models.CharField(max_length=200, verbose_name='Название ингредиента')),
-                ('measurement_unit', models.CharField(max_length=200, verbose_name='Название единицы измерения')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "pub_date",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="Дата создания",
+                        verbose_name="Дата создания",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=200, verbose_name="Название ингредиента"
+                    ),
+                ),
+                (
+                    "measurement_unit",
+                    models.CharField(
+                        max_length=200, verbose_name="Название единицы измерения"
+                    ),
+                ),
             ],
             options={
-                'ordering': ('pub_date',),
-                'abstract': False,
+                "ordering": ("pub_date",),
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='IngredientRecipe',
+            name="IngredientRecipe",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.PositiveIntegerField(default=1, validators=[django.core.validators.MinValueValidator(1)])),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "amount",
+                    models.PositiveIntegerField(
+                        default=1,
+                        validators=[django.core.validators.MinValueValidator(1)],
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Recipe',
+            name="Recipe",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('pub_date', models.DateTimeField(auto_now_add=True, help_text='Дата создания', verbose_name='Дата создания')),
-                ('name', models.CharField(max_length=200, verbose_name='Название рецепта')),
-                ('image', models.ImageField(default=None, null=True, upload_to='')),
-                ('text', models.TextField(verbose_name='Описание рецепта')),
-                ('cooking_time', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "pub_date",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="Дата создания",
+                        verbose_name="Дата создания",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(max_length=200, verbose_name="Название рецепта"),
+                ),
+                ("image", models.ImageField(default=None, null=True, upload_to="")),
+                ("text", models.TextField(verbose_name="Описание рецепта")),
+                (
+                    "cooking_time",
+                    models.PositiveIntegerField(
+                        validators=[django.core.validators.MinValueValidator(1)]
+                    ),
+                ),
             ],
             options={
-                'ordering': ('pub_date',),
-                'abstract': False,
+                "ordering": ("pub_date",),
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Tag',
+            name="Tag",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('pub_date', models.DateTimeField(auto_now_add=True, help_text='Дата создания', verbose_name='Дата создания')),
-                ('name', models.CharField(max_length=200, unique=True, verbose_name='Название тега')),
-                ('color', models.CharField(default='#ffffff', max_length=7, null=True, unique=True)),
-                ('slug', models.SlugField(max_length=200, unique=True, verbose_name='Уникальный слаг тега')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "pub_date",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="Дата создания",
+                        verbose_name="Дата создания",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=200, unique=True, verbose_name="Название тега"
+                    ),
+                ),
+                (
+                    "color",
+                    models.CharField(
+                        default="#ffffff", max_length=7, null=True, unique=True
+                    ),
+                ),
+                (
+                    "slug",
+                    models.SlugField(
+                        max_length=200, unique=True, verbose_name="Уникальный слаг тега"
+                    ),
+                ),
             ],
             options={
-                'ordering': ('pub_date',),
-                'abstract': False,
+                "ordering": ("pub_date",),
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='TagRecipe',
+            name="TagRecipe",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('recipe', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tag_recipe', to='recipes.recipe')),
-                ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tag_recipe', to='recipes.tag')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "recipe",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tag_recipe",
+                        to="recipes.recipe",
+                    ),
+                ),
+                (
+                    "tag",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tag_recipe",
+                        to="recipes.tag",
+                    ),
+                ),
             ],
         ),
     ]
